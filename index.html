@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="./build/react.development.js"></script>
+    <script src="./build/react-dom.development.js"></script>
+    <script src="./build/babel.min.js"></script>
+</head>
+<style>
+    .modulesItem {
+        display: flex;
+        height: fit-content;
+    }
+    .firstKey {
+        width: 200px;
+        color: #222;
+    }
+
+    .secondKey {
+        flex: 1;
+    }
+    .secondKey .secondItem {
+        display: flex;
+        padding: 5px;
+        border-bottom: 1px solid #ccc;
+        line-height: 40px;
+    }
+    .key {
+        width: 250px;
+        color: #333;
+    }
+
+    .enValue, .zhValue {
+        flex: 1;
+        color: #232323;
+        height: fit-content;
+        padding: 0 20px;
+    }
+</style>
+
+<body>
+    <div id="root"></div>
+
+
+</body>
+<script type="text/babel">
+    let url = 'http://127.0.0.1:1234'
+    class List extends React.Component {
+        constructor (props) {
+            super(props)
+        }
+        delete(e,firstKey,secondKey) {
+            e.preventDefault();
+            this.props.delete(firstKey,secondKey)
+        }
+        edit(e,firstKey,secondKey) {
+            console.log(e)
+            console.log(firstKey,secondKey)
+        }
+        render() {
+            const {firstKeyList, enObj, zhObj } = this.props
+            // console.log(enObj ,zhObj )
+            // this.delete()
+
+            return (
+                <div>
+                    {firstKeyList.map((item,m) => 
+                            <div className="modulesItem" key={m}>
+                                <h3 className="firstKey">{item}</h3>
+                                <ul className="secondKey">
+                                    {   
+                                        // if(enObj[item].toString !== '[object Object]') return true
+                                        
+                                        Object.getOwnPropertyNames(enObj[item]).map((element,n) => {
+                                            let enValue = enObj[item][element],
+                                                zhValue = zhObj[item][element]
+                                            return (<li key={n} className="secondItem">
+                                                <span className="key">{element}:</span>
+                                                <span className="enValue">{enValue}</span>
+                                                <span className="zhValue">{zhValue}</span>
+                                                <div>
+                                                    <input type="button" onClick={(e) => this.edit(e, item,element)} value="编辑"/>  
+                                                    <input type="button" onClick={(e) => this.delete(e, item,element)} value="删除"/>  
+                                                </div>
+                                            </li>)
+                                        })
+                                     
+                                    }
+
+                                </ul>
+                            </div>
+                        )
+                    }
+                </div>
+            )
+        }
+    }
+    class App extends React.Component {
+        constructor (props) {
+            super(props)
+        }
+        state = {
+            firstKeyList:[],
+            secondKeyList:[],
+            enObj: {},
+            zhObj: {}
+        }
+        getfirstKeyList (obj) {
+            if(obj.toString() === '[object Object]') {
+                return Object.getOwnPropertyNames(obj)
+            } else {
+                return []
+            }
+        }
+        getList = () => {
+            axios.all([this.getZhObj(), this.getEnObj()])
+            .then(axios.spread( (zhObj, enObj) => {
+                // 两个请求现在都执行完成
+                console.log(zhObj.data, enObj.data)
+                let firstKeyList = this.getfirstKeyList(zhObj.data)
+                this.setState({
+                    zhObj:zhObj.data,
+                    enObj:enObj.data,
+                    firstKeyList
+                })
+            })).catch( err => {
+                console.log(err)
+            })
+        }
+        getZhObj () {
+            return  axios.get(`${url}/getZh`)
+        }
+        getEnObj () {
+            return axios.get(`${url}/getEn`)
+        }
+        postZhObj (zhObj) {
+            axios.post(`${url}/postZh` , zhObj ).then( res => {
+                console.log(res)
+            })
+        }
+        postEnObj (enObj) {
+            axios.post(`${url}/postEn`, enObj).then( res => {
+                console.log(res)
+            })
+        }
+        postData = (postData) => {
+            console.log('post')
+            axios.post(`${url}/post`, postData).then(res => {
+                console.log(res.data)
+            }).catch(err => {
+
+            })
+        }
+        componentDidMount(){
+            this.getList()
+        }
+        delete = (firstKey, secondkey) => {
+            console.log(222)
+            console.log(firstKey, secondkey)
+            const {enObj,zhObj } = this.state
+            delete enObj[firstKey][secondkey]
+            delete zhObj[firstKey][secondkey]
+            this.setState({
+                enObj,
+                zhObj
+            })
+            this.postZhObj(zhObj)
+            this.postEnObj(enObj)
+
+        }
+        render() {
+            const {enObj, zhObj, firstKeyList} = this.state
+            return (
+                <div>
+                    <div id='get' onClick={this.getList}> get 请求 </div>
+                    <div id='post' onClick={this.postData}> post 请求 </div>
+                    <List firstKeyList={firstKeyList} enObj={enObj} zhObj={zhObj} delete={this.delete}/>
+                </div>
+            );
+        }
+    }
+    ReactDOM.render(<App/>, document.getElementById('root'))
+    let get = document.getElementById('get');
+    let post = document.getElementById('post')
+</script>
+
+</html>
