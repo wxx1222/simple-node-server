@@ -55,6 +55,30 @@ app.post('/postEn', cors(), (req,res) => {
         res.json({code:0,massage:'保存成功'})
     })
 })
+app.post('/editEn', cors(), (req, res) => {
+    console.log('editEn')
+    // console.log(req.body)
+    let postData = JSON.stringify(req.body)
+    writeToJsonFile('en.json', postData, (err, data) => {
+        if (err) res.json({ code: 0, massage: '保存失败' })
+        res.json({ code: 0, massage: '保存成功' })
+    })
+})
+app.post('/editZh', cors(), (req, res) => {
+    console.log('editZh')
+    // console.log(req.body)
+    let postData = JSON.stringify(req.body)
+    writeToJsonFile('zh.json', postData, (err, data) => {
+        if (err) res.json({
+            code: 0,
+            massage: '保存失败'
+        })
+        res.json({
+            code: 0,
+            massage: '保存成功'
+        })
+    })
+})
 app.post('/post', cors(), (req,res) => {
     let postData = JSON.stringify(req.body)
     console.log('post请求过来了', postData)

@@ -41,6 +41,23 @@
         height: fit-content;
         padding: 0 20px;
     }
+    .editContainer {
+        position: absolute;
+        top: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 800px;
+        height: 400px;
+        /* display: flex; */
+        /* justify-content: space-between; */
+        z-index: 99;
+        background-color: #eee;
+    }
+    .editContainer input {
+        width: 200px;
+        height: 40px;
+    }
+    
 </style>
 
 <body>
@@ -54,21 +71,50 @@
         constructor (props) {
             super(props)
         }
+        state = {
+           showEditContainer:false
+        }
         delete(e,firstKey,secondKey) {
             e.preventDefault();
             this.props.delete(firstKey,secondKey)
         }
         edit(e,firstKey,secondKey) {
-            console.log(e)
+            // console.log(e)
             console.log(firstKey,secondKey)
+            const {showEditContainerer} = this.state
+            this.setState({
+                firstEditkey: firstKey,
+                secondEditKey:secondKey,
+                showEditContainer: !this.state.showEditContainer
+            })
+            // console.log(this.state,showEditContainer)
+            // const {enObj, zhObj } = this.props
+
+            
+            // this.props.edit(firstKey,secondKey)
         }
         render() {
             const {firstKeyList, enObj, zhObj } = this.props
             // console.log(enObj ,zhObj )
             // this.delete()
-
+            const {firstEditkey,secondEditKey, showEditContainer} = this.state
+            console.log(firstEditkey, secondEditKey , showEditContainer)
             return (
                 <div>
+                    {
+
+                    showEditContainer ?
+                    <div className="editContainer">
+                        <input value={firstEditkey} />
+                        <input value={enObj[firstEditkey][secondEditKey]}/>
+                        <input value={zhObj[firstEditkey][secondEditKey]}/>
+                        <div>
+                            <button>保存</button>
+                            <button>取消</button>
+                        </div>
+                    </div> : null
+                    }
+                 
                     {firstKeyList.map((item,m) => 
                             <div className="modulesItem" key={m}>
                                 <h3 className="firstKey">{item}</h3>
@@ -156,12 +202,18 @@
 
             })
         }
+        edit = (firstKey, secondkey) => {
+            console.log(firstKey, secondkey)
+            const {enObj,zhObj } = this.state
+            
+
+        }
         componentDidMount(){
             this.getList()
         }
         delete = (firstKey, secondkey) => {
             console.log(222)
-            console.log(firstKey, secondkey)
+            
             const {enObj,zhObj } = this.state
             delete enObj[firstKey][secondkey]
             delete zhObj[firstKey][secondkey]
@@ -179,7 +231,7 @@
                 <div>
                     <div id='get' onClick={this.getList}> get 请求 </div>
                     <div id='post' onClick={this.postData}> post 请求 </div>
-                    <List firstKeyList={firstKeyList} enObj={enObj} zhObj={zhObj} delete={this.delete}/>
+                    <List firstKeyList={firstKeyList} enObj={enObj} zhObj={zhObj} delete={this.delete} edit={this.edit}/>
                 </div>
             );
         }
